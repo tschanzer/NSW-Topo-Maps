@@ -2,24 +2,28 @@
 
 import json
 
-PREFIX_25K = 'https://portal.spatial.nsw.gov.au/download/geopdf/25k/'
+PREFIX = 'https://portal.spatial.nsw.gov.au/download/geopdf/'
 
 
 def main():
     """Convert the JSON array to a name:URL mappping."""
 
-    with open('NSW_topo_maps.json', 'r', encoding='utf8') as f:
+    with open('nsw_topo_map_urls.json', 'r', encoding='utf8') as f:
         original = json.load(f)['maps']
 
     new = {}
     original: list[str]
     for url in original:
-        if url.startswith(PREFIX_25K):
-            code = url.removeprefix(PREFIX_25K).removesuffix('.pdf')
-            name = ' '.join(code.split('+')[1:]).lower()
-            new[name] = code
+        if url.startswith(PREFIX):
+            url = url.removeprefix(PREFIX).removesuffix('.pdf')
+            # We now have something like 25k/9135-1N+ABERBALDIE
+            scale, full_name = url.split('/')
+            # Drop the numerical code at the start of full_name and
+            # replace + with _ in multi-word place names
+            name = '_'.join(full_name.split('+')[1:]).lower()
+            new[name] = {'full_name': full_name, 'scale': scale}
 
-    with open('nsw_topo_maps_new.json', 'w', encoding='utf8') as f:
+    with open('nsw_topo_map_names_scales.json', 'w', encoding='utf8') as f:
         json.dump(new, f, indent='    ')
 
 
